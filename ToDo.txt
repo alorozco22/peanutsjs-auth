@@ -1,0 +1,26 @@
+// implementar mensajes de retroalimentación
+	// Validación de datos registrados en servidor: mensaje de error
+	// Validación de datos login en servidor: mensaje de error
+// TODO: conectar la plantilla que ya teníamos con el sistema de autenticación
+
+Algunos Test:
+- CHECK Verificar que sesiones estén almacenadas en DB y no en memoria local
+
+REGULAR POCEDURE (chequea que el flujo es deseado)
+- Registrar nuevo usuario sin obs en db
+- Registrar nuevo usuario con obs en db
+- Login sin obs en db (credeciales correctas)
+- login con obs en db (credeciales correctas)
+- logout: funciona en db y en todo
+
+CASOS EXCEPCIONALES
+- login con mala password con obs en db
+- login con mala password sin obs en db
+- login con usuario no registrado con obs en db
+- login con usuario no registrado con obs en db
+- login con datos incompletos
+- register con datos incompletos
+
+ACCESSOS NO AUTORIZADOS o navegación a mano
+- Una vez logineado probar dashboard, login, register, landing
+- Sin loginear probar dashboard, login, register, landing

@@ -1,0 +1,26 @@
+The dotEnv file should be in the root of the server. It works 
+exclusively for LOCAL development. Remember to add your dotEnv 
+file to your .gitignore file (in the root as well). That is important 
+for the privacy of your variables. The file should be called:
+
+.env
+
+If you are deploying to Heroku, you can set your environment variables
+via your command prompt:
+
+heroku config:set GITHUB_USERNAME=joesmith
+
+You can consult your environment variables with:
+
+heroku config
+
+Your .env file should follow the next example format:
+
+PORT=4004
+DBURL=127.0.0.1
+DBPORT=3306
+DBUSER=root
+DBPASSWORD=myPassword
+DBNAME=peanutsdb
+RUNNING_LOCAL=true
+SESSIONSECRET=somelongstring
