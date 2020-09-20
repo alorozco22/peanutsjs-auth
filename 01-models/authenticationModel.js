@@ -75,77 +75,91 @@ let createTableOfusers = function(){
 // validateLogin (public)
 let validateLogin = function(pUser, pPass){
 	return new Promise((resolve, reject)=>{
-		validateDBConnection()
+		// We first validate data format
+		validateLoginDataFormat()
 		.then(data=>{
-			console.log(data);			
+			
+			// Fine: validated, we validate database connection
+			return validateDBConnection()
+			.then(data=>{
+				console.log(data);			
 
-			let sql = 'SELECT * FROM users WHERE username = "'+pUser+'"';
+				let sql = 'SELECT * FROM users WHERE username = "'+pUser+'"';
 
-			con.query(sql, function(err, result){
-				console.log('result[0]');
-				console.log(result[0]);
-				if(err){console.log('::Auth Model:: Error authenticating user. ');reject(err);}
-				else if (result != undefined){
-					if(result[0].hash != undefined && bcrypt.compareSync(pPass, result[0].hash)) {
-						console.log('::Auth Model:: User authenticated. '); resolve({id:result[0].id});
-							
-					} else {
-						console.log('::Auth Model:: User not authenticated.'); reject();
+				con.query(sql, function(err, result){
+					console.log('result[0]');
+					console.log(result[0]);
+					if(err){console.log('::Auth Model:: Error authenticating user. ');reject(err);}
+					else if (result != undefined){
+						if(result[0].hash != undefined && bcrypt.compareSync(pPass, result[0].hash)) {
+							console.log('::Auth Model:: User authenticated. '); resolve({id:result[0].id});
+								
+						} else {
+							console.log('::Auth Model:: User not authenticated.'); reject();
+						}
 					}
-				}
+				});
+
+
+
+			}, err=>{
+				reject('::Auth Model:: Error creating connection with the database.');
 			});
 
 
-
 		}, err=>{
-			reject('::Auth Model:: Error creating connection with the database.');
+			reject(err);
 		});
+
+		
 	});
 }
 
 // registerUser (public)
 let registerUser = function(pUser, pPass){
 	return new Promise((resolve, reject)=>{
+		// We first validate data format
 		validateRegisterDataFormat()
+		
 		.then(data=>{
-			// Fine.
-			return validateDBConnection();
+			
+			// Fine: validated, we validate database connection
+			return validateDBConnection()
+			.then(data=>{
+				console.log(data);
+
+				let id;
+
+				let hash = bcrypt.hashSync(pPass, parseInt(process.env.SALT_ROUNDS));
+
+				confirmUserIsAvailable(con, pUser)
+				  .then(data=>{
+				  	if(data==true){
+				  		// Already taken
+				  		reject('::Auth Model:: Username already taken.');
+				  	} else {
+				  		// User available
+				  		return lastUserID(con);
+				  	}
+				  })
+				  .then(data=>{
+				  	// data es el id más grande
+				  	
+				  	id = data+1;
+				  	let sql = 'INSERT INTO users (id, username, hash) VALUES ("'+id+'", "'+pUser+'", "'+hash+'")';
+			  		con.query(sql, function(err, result){
+						if (err) {console.log('::Auth Model:: Error inserting new user to users table.');reject(err);}
+						resolve({message:'::Auth Model:: New user inserted to users table.',id:id});
+					});
+
+				  }, err=>{
+				  	reject('::Auth Model:: Error creating connection with the database.');
+				  });
+	
+			})
+
 		}, err=>{reject(err);})
-		.then(data=>{
-			console.log(data);
-
-			let id;
-
-			let hash = bcrypt.hashSync(pPass, parseInt(process.env.SALT_ROUNDS));
-
-			confirmUserIsAvailable(con, pUser)
-			  .then(data=>{
-			  	if(data==true){
-			  		// Already taken
-			  		reject('::Auth Model:: Username already taken.');
-			  	} else {
-			  		// User available
-			  		return lastUserID(con);
-			  	}
-			  })
-			  .then(data=>{
-			  	// data es el id más grande
-			  	
-			  	id = data+1;
-			  	let sql = 'INSERT INTO users (id, username, hash) VALUES ("'+id+'", "'+pUser+'", "'+hash+'")';
-		  		con.query(sql, function(err, result){
-					if (err) {console.log('::Auth Model:: Error inserting new user to users table.');reject(err);}
-					resolve({message:'::Auth Model:: New user inserted to users table.',id:id});
-				});
-
-			  }, err=>{
-			  	reject(err);
-			  });
-
-
-		}, err=>{
-			reject('::Auth Model:: Error creating connection with the database.');
-		})
+		
 	});
 }
 

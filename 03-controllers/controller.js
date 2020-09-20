@@ -72,7 +72,7 @@ let postLogin = function(req, res){
 	}, err=>{
 		// Not authenticated
 		console.log('::Controller:: Error validating', err);
-		res.redirect('/login', err);
+		res.redirect('/login');
 	});
 }
 
@@ -82,7 +82,7 @@ let postRegister = function(req, res){
 		req.session.userID = data.id;
 		res.redirect('/dashboard');
 	}, err=>{
-		res.redirect('/register', err);
+		res.redirect('/register');
 		console.log('::Controller:: Error registering user. ', err);
 	});
 }
