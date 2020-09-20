@@ -90,13 +90,15 @@ let validateLogin = function(pUser, pPass){
 					console.log('result[0]');
 					console.log(result[0]);
 					if(err){console.log('::Auth Model:: Error authenticating user. ');reject(err);}
-					else if (result != undefined){
+					else if (result != undefined && result[0] != undefined){
 						if(result[0].hash != undefined && bcrypt.compareSync(pPass, result[0].hash)) {
 							console.log('::Auth Model:: User authenticated. '); resolve({id:result[0].id});
 								
 						} else {
-							console.log('::Auth Model:: User not authenticated.'); reject();
+							reject('::Auth Model:: User not authenticated.');
 						}
+					} else {
+						reject('::Auth Model:: User not authenticated.');
 					}
 				});
 

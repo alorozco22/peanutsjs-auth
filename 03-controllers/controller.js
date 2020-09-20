@@ -41,7 +41,7 @@ let getLogin = function(req, res){
 		// Execute action with the processed data
 		// Here we assign in the session the id of the user authenticated req.session.userID = 
 		res.send('<h1>Login</h1><form method="post" action="/login"><input type="email" name="email" placeholder="Email" required /><input type="password" name="password" placeholder="Password" required /><input type="submit"></form><a href="/register">Register</a>');
-		// res.render('./ejs/newPage', data);
+		//res.render('./ejs/login', {'err':''});
 	}, err=>{
 		console.log('::Controller:: Error collecting data from specificModel. ', err);
 	});
