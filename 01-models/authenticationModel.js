@@ -40,10 +40,10 @@ let validateDBConnection = function(){
 			// There is an existing connection, let's return it
 			resolve('::Auth Model:: There is already a connection with the DB.');
 		} else {
-			con = mysql.createConnection(dbOptions);
-			con.connect(function(err){
+			con = mysql.createPool(dbOptions);
+			/*con.connect(function(err){
 				if(err){console.log('::Auth Model:: Error connecting to DB.', err);}
-			});
+			});*/
 			resolve('::Auth Model:: Connection with the DB was created.');
 		}
 	});
@@ -125,42 +125,58 @@ let registerUser = function(pUser, pPass){
 		
 		.then(data=>{
 			
-			// Fine: validated, we validate database connection
-			return validateDBConnection()
+			// Fine: validated, we validate database connection/pool 
+			validateDBConnection()
 			.then(data=>{
+				// There is already a database connection/pool
 				console.log(data);
 
 				let id;
 
 				let hash = bcrypt.hashSync(pPass, parseInt(process.env.SALT_ROUNDS));
 
+				// Next, we check that the user is already taken
+				// true if taken, false if available:
 				confirmUserIsAvailable(con, pUser)
 				  .then(data=>{
+				  	// Yep, this always resolves (whether true or false)
 				  	if(data==true){
-				  		// Already taken
+				  		// Already taken (jeje)
 				  		reject('::Auth Model:: Username already taken.');
 				  	} else {
 				  		// User available
-				  		return lastUserID(con);
+				  		console.log('::Auth Model:: Lets proceed with checking biggest id.');
+				  		// Check last user id to sum 1
+				  		lastUserID(con)
+				  		.then(data=>{
+				  			// Good, we have the last user id:
+				  			console.log('::Auth Model:: Lets proceed with insertion of the new user');
+				  			id = data+1;
+						  	let sql = 'INSERT INTO users (id, username, hash) VALUES ("'+id+'", "'+pUser+'", "'+hash+'")';
+					  		con.query(sql, function(err, result){
+								if (err) {console.log('::Auth Model:: Error inserting new user to users table.');reject(err);}
+								resolve({message:'::Auth Model:: New user inserted to users table.',id:id});
+							});	
+				  		}, err=>{
+				  			// Error checking last user id
+				  			reject(err);
+				  		})
+				  		
 				  	}
-				  })
-				  .then(data=>{
-				  	// data es el id más grande
-				  	
-				  	id = data+1;
-				  	let sql = 'INSERT INTO users (id, username, hash) VALUES ("'+id+'", "'+pUser+'", "'+hash+'")';
-			  		con.query(sql, function(err, result){
-						if (err) {console.log('::Auth Model:: Error inserting new user to users table.');reject(err);}
-						resolve({message:'::Auth Model:: New user inserted to users table.',id:id});
-					});
-
 				  }, err=>{
-				  	reject('::Auth Model:: Error creating connection with the database.');
-				  });
+				  	// This never happens, but there was a problem checking user availability
+				  	reject(err);
+				  })
 	
+			}, err=>{
+				// There was a problem validating database connection/pool
+				reject(err);
 			})
 
-		}, err=>{reject(err);})
+		}, err=>{
+			// Data was not validated
+			reject(err);
+		})
 		
 	});
 }
@@ -204,15 +220,15 @@ let lastUserID = function(con){
 
 let validateLoginDataFormat = function(pUser, pPass){
 	return new Promise((resolve, reject)=>{
-		//resolve('done');
-		reject('You should change your input');
+		resolve('done');
+		//reject('You should change your input');
 	});
 }
 
 let validateRegisterDataFormat = function(){
 	return new Promise((resolve, reject)=>{
-		//resolve('done');
-		reject('You should change your input');
+		resolve('done');
+		//reject('You should change your input');
 	});
 }
 
